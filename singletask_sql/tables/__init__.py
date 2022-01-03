@@ -50,3 +50,15 @@
 #             State.to_string(self.state)
 #         except IndexError:
 #             raise ValueError('Invalid assign type')
+
+from singletask_sql.tables.base.tasks import TasksTable, TasksStateTable, TasksCommentsTable
+from singletask_sql.tables.base.performers import PerformersTable
+from singletask_sql.tables.base.events import EventsTable
+
+tracked_tables = [
+    TasksTable,
+    TasksStateTable,
+    TasksCommentsTable,
+    PerformersTable,
+    EventsTable
+]

@@ -68,6 +68,7 @@ def upgrade():
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
+
     # ### end Alembic commands ###
 
 

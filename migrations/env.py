@@ -1,8 +1,5 @@
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
-
 from alembic import context
 
 # this is the Alembic Config object, which provides
@@ -13,23 +10,11 @@ config = context.config
 # This line sets up loggers basically.
 fileConfig(config.config_file_name)
 
-# add your model's MetaData object here
-# for 'autogenerate' support
-# from myapp import mymodel
-# target_metadata = mymodel.Base.metadata
 from singletask_sql.settings import conf
 from singletask_sql.engine import create_engine
-from singletask_sql.tables.base.tasks import TasksTable, TasksStateTable, TasksCommentsTable
-from singletask_sql.tables.base.performers import PerformersTable
-from singletask_sql.tables.base.events import EventsTable
+from singletask_sql.tables import tracked_tables
 
-target_metadata = [
-    TasksTable.metadata,
-    TasksStateTable.metadata,
-    TasksCommentsTable.metadata,
-    PerformersTable.metadata,
-    EventsTable.metadata
-]
+target_metadata = [getattr(table, 'metadata') for table in tracked_tables]
 
 
 # other values from the config, defined by the needs of env.py,
