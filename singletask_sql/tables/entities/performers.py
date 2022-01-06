@@ -1,7 +1,5 @@
 from sqlalchemy import orm
 import sqlalchemy as sqla
-
-from singletask_sql.tables.base import BaseTable
 from singletask_sql.tables.utils import Enum
 
 
@@ -17,8 +15,7 @@ class PerformerType(Enum):
     }
 
 
-class PerformersTable(BaseTable):
-    __tablename__ = 'performers'
+class Performers:
     name = sqla.Column(sqla.Text)
     type = sqla.Column(sqla.Integer)
 
