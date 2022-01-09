@@ -17,9 +17,11 @@ class BaseTable(object):
     Base table for ALL models (use BaseTable inherit expected for all application code)
     """
     __mapper_args__ = {
-        'confirm_deleted_rows': False
+        'confirm_deleted_rows': False,
     }
-
+    __table_args__ = {
+        'extend_existing': True
+    }
     id = sqla.Column(sqla.Integer, primary_key=True)
     created_at = sqla.Column(sqla.DateTime, default=datetime.datetime.utcnow())
 
@@ -32,12 +34,6 @@ class BaseTable(object):
         session.execute(select(Model).execution_options(constants.INCLUDED_DELETED=True))
     """
     deleted_at = sqla.Column(sqla.DateTime, nullable=True)
-
-    """
-    updated_at updating time setting in trigger (postgresql stored procedure)
-    https://www.postgresql.org/docs/9.2/plpgsql-trigger.html
-    Migration in "migrations/versions/*_triggers.py"
-    """
     updated_at = sqla.Column(sqla.DateTime, default=datetime.datetime.utcnow())
 
     def delete(self, deleted_at: datetime = None):
@@ -47,9 +43,22 @@ class BaseTable(object):
         self.deleted_at = None
 
 
+@event.listens_for(orm.Mapper, 'before_update')
+def before_compile_delete(mapper, connection, entity):
+    entity.updated_at = datetime.datetime.utcnow()
+
+
+@event.listens_for(orm.Mapper, 'before_delete')
+def before_compile_delete(mapper, connection, entity):
+    raise ValueError(
+        "Please use entity.delete() / entity.restore() or entity.deleted_at = datetime.datetime.utcnow()/None")
+
+
 @event.listens_for(orm.Query, 'before_compile', retval=True)
 def before_compile(query):
-    include_deleted = query.get_execution_options[names.INCLUDED_DELETED]
+    options = query.get_execution_options()
+    include_deleted = options.get(names.INCLUDED_DELETED, False)
+
     if include_deleted:
         return query
 
@@ -70,7 +79,7 @@ class TasksTable(BaseTable, tasks.Tasks):
     performer = orm.relationship("PerformersTable")
     states = orm.relationship('TaskStatesTable', order_by="TaskStatesTable.created_at", back_populates="task")
     comments = orm.relationship('TasksCommentsTable', order_by="TasksCommentsTable.created_at", back_populates="task")
-    events = orm.relationship('EventsTable', order_by="EventsTable.created_at", back_populates="task")
+    events = orm.relationship('BaseEventsTable', order_by="BaseEventsTable.created_at", back_populates="task")
 
 
 class TaskStatesTable(BaseTable, tasks.TaskStates):
@@ -93,15 +102,17 @@ class PerformersTable(BaseTable, performers.Performers):
 
 class BaseEventsTable(BaseTable, events.Events):
     __tablename__ = names.TABLE_NAME_EVENTS
+    task_id = sqla.Column(sqla.ForeignKey(f"{names.TABLE_NAME_TASKS}.id"), nullable=True)
+    task = orm.relationship('TasksTable')
 
 
 class HttpEvents(BaseTable, events.HttpEvents):
     __tablename__ = names.TABLE_NAME_HTTP_EVENTS
-    task_id = sqla.Column(sqla.ForeignKey(f"{names.TABLE_NAME_TASKS}.id"), nullable=True)
     event_id = sqla.Column(sqla.ForeignKey(f"{names.TABLE_NAME_EVENTS}.id"), nullable=True)
+    event = orm.relationship('BaseEventsTable')
 
 
 class ManagersEvents(BaseTable, events.ManagerEvents):
     __tablename__ = names.TABLE_NAME_MANAGER_EVENTS
-    task_id = sqla.Column(sqla.ForeignKey(f"{names.TABLE_NAME_TASKS}.id"), nullable=True)
     event_id = sqla.Column(sqla.ForeignKey(f"{names.TABLE_NAME_EVENTS}.id"), nullable=True)
+    event = orm.relationship('BaseEventsTable')

@@ -1,7 +1,8 @@
 from singletask_sql.tests import DBTestCase
 from sqlalchemy import orm
-
-from singletask_sql.tables import TasksTable, TasksCommentsTable
+from sqlalchemy import func
+from singletask_sql.tables import TasksTable
+from singletask_sql.tables.utils import query as query_utils
 
 
 # https://docs.sqlalchemy.org/en/14/orm/query.html
@@ -19,26 +20,11 @@ class TaskTestCase(DBTestCase):
 
     def test(self):
         with orm.Session(self.sql_engine) as session:
-            task = create_task("test")
-            task_del = create_task("test del")
-            session.add(task, task_del)
-            session.delete(task_del)
-            session.commit()
+            query = session.query(func.count(TasksTable.id))
+            result = session.execute(query).all()
+            print(result)
 
-    # def test_1(self):
-    #     with orm.Session(self.sql_engine) as session:
-    #         task = TasksTable()
-    #         task.description = "test"
-    #         task.domains = ""
-    #         task.tags = ""
-    #         session.add(task)
-    #
-    #         comment = TasksCommentsTable()
-    #         comment.text = "some_text"
-    #         comment.task = task
-    #
-    #         session.add(comment)
-    #         session.commit()
-    #
-    #         print(task.id)
-    #         print(comment.task_id)
+            query = session.query(func.count(TasksTable.id))
+            query = query_utils.include_deleted(query)
+            result = session.execute(query).all()
+            print(result)

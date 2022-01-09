@@ -1,6 +1,5 @@
 import sqlalchemy as sqla
 from sqlalchemy import event
-from singletask_sql.tables.constants import INCLUDED_DELETED
 from pprint import pformat
 
 DEBUG_QUERY_TEMPLATE = """{clauseelement}
@@ -15,7 +14,6 @@ def _handle_after_execute(conn, clauseelement, multiparams, params, execution_op
 def create_engine(conf, execution_options=None):
     if not execution_options:
         execution_options = {}
-    execution_options.setdefault(INCLUDED_DELETED, False)
 
     url = sqla.engine.URL.create(
         drivername='postgresql+psycopg2',

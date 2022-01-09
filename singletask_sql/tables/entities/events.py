@@ -2,7 +2,7 @@ import sqlalchemy as sqla
 from sqlalchemy.dialects import postgresql
 from sqlalchemy import orm
 
-from singletask_sql.tables.utils import Enum
+from singletask_sql.tables.enum import Enum
 
 
 class EventType(Enum):
@@ -23,6 +23,7 @@ class Events:
     domain = sqla.Column(sqla.Text, nullable=True, index=True)
     tags = sqla.Column(sqla.Text, nullable=True, index=True)
     source = sqla.Column(sqla.Text, nullable=True, index=True)
+    table = sqla.Column(sqla.Text, nullable=True, index=True)
 
     @orm.validates('type')
     def validate_assign(self):
@@ -30,7 +31,6 @@ class Events:
             EventType.to_string(self.type)
         except IndexError:
             raise ValueError('Invalid assign type')
-
 
 
 class HttpEvents:

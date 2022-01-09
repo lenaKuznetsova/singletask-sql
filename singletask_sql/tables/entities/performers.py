@@ -1,6 +1,6 @@
 from sqlalchemy import orm
 import sqlalchemy as sqla
-from singletask_sql.tables.utils import Enum
+from singletask_sql.tables.enum import Enum
 
 
 class PerformerType(Enum):
