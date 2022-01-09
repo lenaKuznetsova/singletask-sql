@@ -8,15 +8,7 @@ from singletask_sql.tables.entities import tasks
 from singletask_sql.tables.entities import performers
 from singletask_sql.tables.entities import events
 
-from singletask_sql.tables.constants import INCLUDED_DELETED
-
-from singletask_sql.tables.constants import (
-    TABLE_NAME_TASK_COMMENTS,
-    TABLE_NAME_PERFORMERS,
-    TABLE_NAME_EVENTS,
-    TABLE_NAME_TASK_STATES,
-    TABLE_NAME_TASKS
-)
+from singletask_sql.tables import constants as names
 
 
 @as_declarative()
@@ -57,7 +49,7 @@ class BaseTable(object):
 
 @event.listens_for(orm.Query, 'before_compile', retval=True)
 def before_compile(query):
-    include_deleted = query.get_execution_options[INCLUDED_DELETED]
+    include_deleted = query.get_execution_options[names.INCLUDED_DELETED]
     if include_deleted:
         return query
 
@@ -74,7 +66,7 @@ def before_compile(query):
 
 
 class TasksTable(BaseTable, tasks.Tasks):
-    __tablename__ = TABLE_NAME_TASKS
+    __tablename__ = names.TABLE_NAME_TASKS
     performer = orm.relationship("PerformersTable")
     states = orm.relationship('TaskStatesTable', order_by="TaskStatesTable.created_at", back_populates="task")
     comments = orm.relationship('TasksCommentsTable', order_by="TasksCommentsTable.created_at", back_populates="task")
@@ -82,24 +74,34 @@ class TasksTable(BaseTable, tasks.Tasks):
 
 
 class TaskStatesTable(BaseTable, tasks.TaskStates):
-    __tablename__ = TABLE_NAME_TASK_STATES
-    task_id = sqla.Column(sqla.ForeignKey(f"{TABLE_NAME_TASKS}.id"))
+    __tablename__ = names.TABLE_NAME_TASK_STATES
+    task_id = sqla.Column(sqla.ForeignKey(f"{names.TABLE_NAME_TASKS}.id"))
     task = orm.relationship('TasksTable', back_populates="states")
 
 
 class TasksCommentsTable(BaseTable, tasks.TaskComments):
-    __tablename__ = TABLE_NAME_TASK_COMMENTS
-    task_id = sqla.Column(sqla.ForeignKey(f"{TABLE_NAME_TASKS}.id"))
+    __tablename__ = names.TABLE_NAME_TASK_COMMENTS
+    task_id = sqla.Column(sqla.ForeignKey(f"{names.TABLE_NAME_TASKS}.id"))
     task = orm.relationship('TasksTable', back_populates="comments")
 
 
 class PerformersTable(BaseTable, performers.Performers):
-    __tablename__ = TABLE_NAME_PERFORMERS
-    task_id = sqla.Column(sqla.ForeignKey(f"{TABLE_NAME_TASKS}.id"), nullable=True)
+    __tablename__ = names.TABLE_NAME_PERFORMERS
+    task_id = sqla.Column(sqla.ForeignKey(f"{names.TABLE_NAME_TASKS}.id"), nullable=True)
     task = orm.relationship('TasksTable', back_populates="performer")
 
 
-class EventsTable(BaseTable, events.Events):
-    __tablename__ = TABLE_NAME_EVENTS
-    task_id = sqla.Column(sqla.ForeignKey(f"{TABLE_NAME_TASKS}.id"), nullable=True)
-    task = orm.relationship('TasksTable', back_populates="events")
+class BaseEventsTable(BaseTable, events.Events):
+    __tablename__ = names.TABLE_NAME_EVENTS
+
+
+class HttpEvents(BaseTable, events.HttpEvents):
+    __tablename__ = names.TABLE_NAME_HTTP_EVENTS
+    task_id = sqla.Column(sqla.ForeignKey(f"{names.TABLE_NAME_TASKS}.id"), nullable=True)
+    event_id = sqla.Column(sqla.ForeignKey(f"{names.TABLE_NAME_EVENTS}.id"), nullable=True)
+
+
+class ManagersEvents(BaseTable, events.ManagerEvents):
+    __tablename__ = names.TABLE_NAME_MANAGER_EVENTS
+    task_id = sqla.Column(sqla.ForeignKey(f"{names.TABLE_NAME_TASKS}.id"), nullable=True)
+    event_id = sqla.Column(sqla.ForeignKey(f"{names.TABLE_NAME_EVENTS}.id"), nullable=True)

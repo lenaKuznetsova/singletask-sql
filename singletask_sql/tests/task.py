@@ -19,11 +19,9 @@ class TaskTestCase(DBTestCase):
 
     def test(self):
         with orm.Session(self.sql_engine) as session:
-            session.ex
             task = create_task("test")
             task_del = create_task("test del")
             session.add(task, task_del)
-            session.commit()
             session.delete(task_del)
             session.commit()
 

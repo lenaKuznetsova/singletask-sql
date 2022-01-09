@@ -21,8 +21,9 @@ class TaskStateType(Enum):
 
 class Tasks(object):
     description = sqla.Column(sqla.Text)
-    domains = sqla.Column(sqla.Text)
-    tags = sqla.Column(sqla.Text)
+    domains = sqla.Column(sqla.Text, index=True)
+    tags = sqla.Column(sqla.Text, index=True)
+    events_table = sqla.Column(sqla.Text, index=True)
 
 
 class TaskComments(object):

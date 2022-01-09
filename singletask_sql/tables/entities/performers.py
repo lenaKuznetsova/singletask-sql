@@ -17,7 +17,7 @@ class PerformerType(Enum):
 
 class Performers:
     name = sqla.Column(sqla.Text)
-    type = sqla.Column(sqla.Integer)
+    type = sqla.Column(sqla.Integer, index=True)
 
     domains_whitelist = sqla.Column(sqla.Text, nullable=True)
     tags_whitelist = sqla.Column(sqla.Text, nullable=True)
