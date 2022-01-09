@@ -23,18 +23,9 @@ class BaseTable(object):
         'extend_existing': True
     }
     id = sqla.Column(sqla.Integer, primary_key=True)
-    created_at = sqla.Column(sqla.DateTime, default=datetime.datetime.utcnow())
-
-    """
-    Soft delete, before query compile 
-        - set is_delete = now and update record if we want deleted it
-        - set filter is_delete == None if INCLUDED_DELETED == True and return only "exist" records
-        
-        For debugging deleted records you can use: 
-        session.execute(select(Model).execution_options(constants.INCLUDED_DELETED=True))
-    """
-    deleted_at = sqla.Column(sqla.DateTime, nullable=True)
-    updated_at = sqla.Column(sqla.DateTime, default=datetime.datetime.utcnow())
+    created_at = sqla.Column(sqla.DateTime, default=datetime.datetime.utcnow(), index=True)
+    updated_at = sqla.Column(sqla.DateTime, default=datetime.datetime.utcnow(), index=True)
+    deleted_at = sqla.Column(sqla.DateTime, nullable=True, index=True)
 
     def delete(self, deleted_at: datetime = None):
         self.deleted_at = deleted_at or datetime.datetime.utcnow()
